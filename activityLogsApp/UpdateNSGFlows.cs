@@ -26,21 +26,15 @@ namespace NwNsgProject
 		[FunctionName("UpdateNSGFlows")]
 		public static async Task Run([TimerTrigger("0 */3 * * * *")] TimerInfo myTimer, TraceWriter log)
 		{
-		    if(myTimer.IsPastDue)
-		    {
-		        log.Info("Timer is running late!");
-		    }
+		    
 		    var secret = Environment.GetEnvironmentVariable("MSI_SECRET");
 		    var subs_ids = Environment.GetEnvironmentVariable("subscriptionIds").Split(',');
 		    string token = null;
-
-		    log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
 		    
 		    UriBuilder builder = new UriBuilder(Environment.GetEnvironmentVariable("MSI_ENDPOINT"));
 			string apiversion = Uri.EscapeDataString("2017-09-01");
 			string resource = Uri.EscapeDataString("https://management.azure.com/");
 			builder.Query = "api-version="+apiversion+"&resource="+resource;
-			log.Info($"url : {builder.Uri}");
 			
 			var client = new SingleHttpClientInstance();
             try
@@ -56,7 +50,6 @@ namespace NwNsgProject
 				    string data =  await response.Content.ReadAsStringAsync();
 				    var tokenObj = JsonConvert.DeserializeObject<Token>(data);
 				    token = tokenObj.access_token;
-				    log.Info($"bingo : {tokenObj.access_token}");
 				}
             }
             catch (System.Net.Http.HttpRequestException e)
@@ -67,7 +60,6 @@ namespace NwNsgProject
             foreach(var subs_id in subs_ids){
 	            ////// get network watchers first
 
-				log.Info($"connected i guess {subs_id}");
 				Dictionary<string, string> nwList = new Dictionary<string, string>(); 
 				string list_network_watchers = "https://management.azure.com/subscriptions/{0}/providers/Microsoft.Network/networkWatchers?api-version=2018-11-01";
 				string list_nsgs = "https://management.azure.com/subscriptions/{0}/providers/Microsoft.Network/networkSecurityGroups?api-version=2018-11-01";
@@ -78,13 +70,11 @@ namespace NwNsgProject
 	                req.Headers.Accept.Clear();
 	                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 	                
-	                log.Info($"reached here 2 {String.Format(list_network_watchers, subs_id)}");
 	                HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
 	                if (response.IsSuccessStatusCode)
 					{
 					    string data =  await response.Content.ReadAsStringAsync();
 					    var result = JsonConvert.DeserializeObject<NWApiResult>(data);
-					    log.Info("converted success");
 					    
 					    foreach (var nw in result.value) {
 					    	nwList.Add(nw.location,nw.name);
@@ -112,9 +102,7 @@ namespace NwNsgProject
 					{
 					    string data =  await response.Content.ReadAsStringAsync();
 					    var result = JsonConvert.DeserializeObject<NSGApiResult>(data);
-					    log.Info("converted success 2");
 					   	await enable_flow_logs(result, nwList, token, subs_id, log);
-					    log.Info("this is done");
 					}
 	            } 
 	            catch (System.Net.Http.HttpRequestException e)
@@ -163,7 +151,7 @@ namespace NwNsgProject
         	string[] all_locations = new string[]{"eastasia","southeastasia","centralus","eastus","eastus2","westus","northcentralus","southcentralus","northeurope","westeurope","japanwest","japaneast","brazilsouth","australiaeast","australiasoutheast","southindia","centralindia","westindia","canadacentral","canadaeast","uksouth","ukwest","westcentralus","westus2","koreacentral","koreasouth","francecentral","francesouth","australiacentral","australiacentral2"};
         	foreach (var nsg in nsgresult.value) {
 		   		string loc_nw = nwList[nsg.location];
-		   		log.Info("inside for loop");
+
 		   		string storageId = "";
 		   		if(storageloc.ContainsKey(nsg.location)){
 		   			storageId = storageloc[nsg.location];
@@ -171,9 +159,7 @@ namespace NwNsgProject
 		   			storageId = await check_avid_storage_account(token,subs_id,nsg.location,log);
 		   			storageloc.Add(nsg.location, storageId);
 		   		}
-		   		log.Info("inside for loop storage check done");
 		   		if(storageId.Equals("null")){
-		   			log.Info("Done for now");
 		   			break;
 	   			}else{
 	   				enable_flow_request(nsg, storageId, loc_nw, subs_id, token, log);
@@ -199,7 +185,7 @@ namespace NwNsgProject
         	var client = new SingleHttpClientInstance();
         	try
             {
-            	log.Info($"enabling flow log {nsg.id} , {storageId}, {loc_nw}, {subs_id}");
+            	
             	dynamic myObject = new JObject();
             	myObject.targetResourceId = nsg.id;
             	dynamic properties = new JObject();
@@ -219,11 +205,11 @@ namespace NwNsgProject
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 HttpResponseMessage response = await SingleHttpClientInstance.sendApiPostRequest(req, token);
-                log.Info($"{response}");
+                
                 if (response.IsSuccessStatusCode)
 				{
 				    string data =  await response.Content.ReadAsStringAsync();
-				    log.Info($"converted success {nsg.name}");
+				    
 				}
             } 
             catch (System.Net.Http.HttpRequestException e)
@@ -248,7 +234,6 @@ namespace NwNsgProject
         	string appNameStage1 = local + "AvidFlowLogs" + subscription_tag  + location_codes[location];
         	string storage_account_name_activity = local + "avidact" + subscription_tag;
 
-        	log.Info($"Creating storage account : {storage_account_name}");
         	try
         	{
         		HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, String.Format(fetch_storage_account_details, subs_id, resourceGroup, storage_account_name));
@@ -260,7 +245,6 @@ namespace NwNsgProject
 				{
 				    string data =  await response.Content.ReadAsStringAsync();
 				    var result = JsonConvert.DeserializeObject<StorageAccountProp>(data);
-				    log.Info("found storage account, checking for deployment");
 				    var is_deployment = await check_app_deployment(token, appNameStage1, subs_id, log);
 				    if(!is_deployment){
 				    	await listKeys(token, storage_account_name, storage_account_name_activity, appNameStage1, subs_id, log);
@@ -270,8 +254,6 @@ namespace NwNsgProject
 				}
 				else{
 					await create_resources(token, subs_id, location_codes[location], storage_account_name, location, log);
-					log.Info("returning null for sure");
-					log.Info($"{response}");
 					return "null";
 				}
         	}
@@ -298,15 +280,7 @@ namespace NwNsgProject
 	            req.Content = content;
 
 			    HttpResponseMessage response = await SingleHttpClientInstance.sendApiPostRequest(req, token);
-			    
-	            if (response.IsSuccessStatusCode)    
-	            {
-					log.Info("retention policy created successfully");            
-	            }
-	            else{
-	            	log.Info("retention policy request failed");
-	            	log.Info($"{response}");
-	            }      
+			        
 	        }
 	        catch (System.Net.Http.HttpRequestException e)
             {
@@ -346,18 +320,15 @@ namespace NwNsgProject
 			    
 	            if (response.IsSuccessStatusCode)    
 	            {
-	            	log.Info("going to next step");
+
 	            	int milliseconds = 80000;
 					Thread.Sleep(milliseconds);
-					log.Info("sleeping for a while");
+
 					create_retention_policy(token, subs_id, storage_account_name, log);
 					await listKeys(token, storage_account_name, storage_account_name_activity, appNameStage1, subs_id, log);
 	                
 	            }
-	            else{
-	            	log.Info("storage account not created");
-	            	log.Info($"{response}");
-	            }      
+	                
 	        }
 	        catch (System.Net.Http.HttpRequestException e)
             {
@@ -380,26 +351,18 @@ namespace NwNsgProject
 			{
 			    string data =  await response_keys.Content.ReadAsStringAsync();
 			    var result = JsonConvert.DeserializeObject<StorageAccountKeyList>(data);
-			    log.Info("found storage account string");
 			    string accountkey = "";
 			   	foreach(var key in result.keys){
 			   		accountkey = key.value;
 			   	}
 
 			   	Boolean check_deploy = await deploy_app(token, accountkey , storage_account_name, storage_account_name_activity, appNameStage1, subs_id, log);
-			   	log.Info($"deplyoment successful {check_deploy}");
 			}
-			else{
-				log.Info($"keys {response_keys}");
-                log.Info($"keys {storage_account_name}");
-                log.Info($"keys {String.Format(list_storage_account_keys, subs_id, resourceGroup, storage_account_name)}");
-                log.Info($"keys data {data_check}");
-                log.Info("Couldnot list keys");
-			}
+			
         }
 
         static async Task<Boolean> deploy_app(String token, String accountkey , String storage_account_name, String storage_account_name_activity, String appNameStage1, String subs_id, TraceWriter log){
-        	log.Info("app deployment 1111");
+
         	string connectionString = "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}";
         	string create_deployment_url = "https://management.azure.com/subscriptions/{0}/resourcegroups/{1}/providers/Microsoft.Resources/deployments/{2}?api-version=2018-05-01";
         	string filledConnectionString = String.Format(connectionString, storage_account_name, accountkey);
@@ -408,11 +371,11 @@ namespace NwNsgProject
         	string local = Util.GetEnvironmentVariable("local");
         	string storageAccountConnecion = Util.GetEnvironmentVariable("storageAccountConnecion");
         	string avidAddress = Util.GetEnvironmentVariable("avidFlowAddress");
-        	log.Info("2222");
-		   	string deployment_json_string = @"{""properties"": {""templateLink"": {""uri"": ""https://s3.us-east-2.amazonaws.com/onboardstaging/azureflows/azureFlowDeploy.json"",""contentVersion"": ""1.0.0.0""},""mode"": ""Incremental"",""parameters"": {""customerId"": {""value"": ""null""},""nsgSourceDataConnection"":{""value"":""null""},""storageAccountName"":{""value"":""null""},""storageAccountConnecion"":{""value"":""null""},""appName"":{""value"":""null""},""avidAddress"":{""value"":""null""} } } }";
-		    log.Info("3333");
+
+		   	string deployment_json_string = @"{""properties"": {""templateLink"": {""uri"": ""https://s3-us-west-2.amazonaws.com/avidcore/azure/azureFlowDeploy.json"",""contentVersion"": ""1.0.0.0""},""mode"": ""Incremental"",""parameters"": {""customerId"": {""value"": ""null""},""nsgSourceDataConnection"":{""value"":""null""},""storageAccountName"":{""value"":""null""},""storageAccountConnecion"":{""value"":""null""},""appName"":{""value"":""null""},""avidAddress"":{""value"":""null""} } } }";
+
 		    var deployment_json = JsonConvert.DeserializeObject<WebAppDeployment>(deployment_json_string);
-		    log.Info("4444");
+
 		    deployment_json.properties.templateLink.uri = Util.GetEnvironmentVariable("flowDepSource");
 		    deployment_json.properties.parameters.customerId.value = customerid;
 		    deployment_json.properties.parameters.nsgSourceDataConnection.value = filledConnectionString;
@@ -437,9 +400,6 @@ namespace NwNsgProject
 			    
 			    if (response.IsSuccessStatusCode){
 			    	return true;
-			    }else{
-			    	log.Info($"dep {response}");
-			    	log.Info($"{check_resp}");
 			    }
 			}
 			catch (System.Net.Http.HttpRequestException e)
@@ -458,13 +418,11 @@ namespace NwNsgProject
                 req.Headers.Accept.Clear();
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
-                log.Info("app deployment checking");
+               
                 
                 if (response.IsSuccessStatusCode)
 				{
 				    return true;
-				}else{
-					log.Info($"{response}");
 				}
         	}
         	catch (System.Net.Http.HttpRequestException e)
@@ -473,71 +431,6 @@ namespace NwNsgProject
             }
             return false;
 
-        }
-
-        static async Task deploy_zip(String appNameStage1, TraceWriter log){
-        	string deploy_func = "https://{0}.scm.azurewebsites.net/api/zipdeploy";
-	    	string filled_deploy_func = String.Format(deploy_func, appNameStage1);
-	    	string zipDeplymentUri = "";
-	    	string token = await get_token_net(log);
-	    	try{
-		    	HttpRequestMessage final_req = new HttpRequestMessage(HttpMethod.Put, filled_deploy_func);
-	            final_req.Headers.Accept.Clear();
-	            final_req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-	            
-	            dynamic myObject = new JObject();
-	        	myObject.packageUri = zipDeplymentUri;
-	        	var content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
-
-	        	final_req.Content = content;
-	            HttpResponseMessage response = await SingleHttpClientInstance.sendApiPostRequest(final_req, token);
-	            
-	            var check_resp = await response.Content.ReadAsStringAsync();
-			    
-	            if (response.IsSuccessStatusCode)
-				{
-					log.Info("All resources created successfully");	
-				}else{
-					log.Info($"func {response}");
-					log.Info($"{check_resp}");
-				}
-			}
-			catch (System.Net.Http.HttpRequestException e)
-            {
-                throw new System.Net.Http.HttpRequestException("request failed ?", e);
-            }
-        }
-
-        static async Task<String> get_token_net(TraceWriter log){
-        	var secret = Environment.GetEnvironmentVariable("MSI_SECRET");
-        	UriBuilder builder = new UriBuilder(Environment.GetEnvironmentVariable("MSI_ENDPOINT"));
-			string apiversion = Uri.EscapeDataString("2017-09-01");
-
-			string resource = Uri.EscapeDataString("https://management.core.windows.net/");
-			builder.Query = "api-version="+apiversion+"&resource="+resource;
-			
-			var client = new SingleHttpClientInstance();
-            try
-            {
-                HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, builder.Uri);
-                req.Headers.Accept.Clear();
-                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                req.Headers.Add("secret", Environment.GetEnvironmentVariable("MSI_SECRET"));
-
-                HttpResponseMessage response = await SingleHttpClientInstance.getToken(req);
-                if (response.IsSuccessStatusCode)
-				{
-				    string data =  await response.Content.ReadAsStringAsync();
-				    var tokenObj = JsonConvert.DeserializeObject<Token>(data);
-				    String token = tokenObj.access_token;
-				    return token;
-				}
-            }
-            catch (System.Net.Http.HttpRequestException e)
-            {
-                throw new System.Net.Http.HttpRequestException("Sending to Splunk. Is Splunk service running?", e);
-            }
-            return "";
         }
 
         static async Task remove_resources(String storage_account_name, String app_name, String token, String subs_id, String location,TraceWriter log){
@@ -552,12 +445,7 @@ namespace NwNsgProject
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
 
-                if (response.IsSuccessStatusCode)
-				{
-					log.Info($"storage account deleted");
-				}else{
-					log.Info($"storage account deletion failed {response}");
-				}
+                
 			}
 			catch (System.Net.Http.HttpRequestException e)
             {
@@ -571,12 +459,7 @@ namespace NwNsgProject
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
 
-                if (response.IsSuccessStatusCode)
-				{
-					log.Info($"app deleted");
-				}else{
-					log.Info($"app deletion failed {response}");
-				}
+                
 			}
 			catch (System.Net.Http.HttpRequestException e)
             {
@@ -608,7 +491,7 @@ namespace NwNsgProject
                 
                 if (response.IsSuccessStatusCode)
 				{
-					log.Info($"deleting storage account : {storage_account_name}");
+
 					string data =  await response.Content.ReadAsStringAsync();
 				    var result = JsonConvert.DeserializeObject<StorageAccountProp>(data);
 				    remove_resources(storage_account_name, appNameStage1, token, subs_id, location, log);

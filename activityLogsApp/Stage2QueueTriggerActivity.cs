@@ -65,7 +65,6 @@ namespace NwNsgProject
             {
                 if (newChunk.Length + length > MAX_CHUNK_SIZE)
                 {
-                    log.Info($"Chunk starts at {newChunk.Start}, length is {newChunk.Length}, next start is {newChunk.Start + newChunk.Length}");
                     outputQueue.Add(newChunk);
 
                     newChunk = GetNewChunk(inputChunk, chunkCount++, log, newChunk.Start + newChunk.Length);

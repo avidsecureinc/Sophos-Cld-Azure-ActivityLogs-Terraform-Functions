@@ -39,7 +39,6 @@ namespace NwNsgProject
 
             // get checkpoint
             Checkpoint checkpoint = Checkpoint.GetCheckpointActivity(blobDetails, checkpointTableActivity);
-            log.Info("second check");
             // break up the block list into 10k chunks
 
             long blobSize = myBlobActivity.Properties.Length;
@@ -57,112 +56,7 @@ namespace NwNsgProject
 
                 checkpoint.PutCheckpointActivity(checkpointTableActivity, blobSize);
                 outputChunksActivity.Add(newchunk);
-                log.Info("added chunk");
             }
-
-            log.Info("no chunk");
-
-            /*foreach (var blockListItem in myBlobActivity.DownloadBlockList(BlockListingFilter.Committed))
-            {
-                if (!foundStartingOffset)
-                {
-                    if (firstBlockItem)
-                    {
-                        currentStartingByteOffset += blockListItem.Length;
-                        firstBlockItem = false;
-                        if (checkpoint.LastBlockName == "")
-                        {
-                            foundStartingOffset = true;
-                        }
-                    }
-                    else
-                    {
-                        if (blockListItem.Name == checkpoint.LastBlockName)
-                        {
-                            foundStartingOffset = true;
-                        }
-                        currentStartingByteOffset += blockListItem.Length;
-                    }
-                }
-                else
-                {
-                    // tieOffChunk = add current chunk to the list, initialize next chunk counters
-                    // conditions to account for:
-                    // 1) current chunk is empty & not the last block (size > 10 I think)
-                    //   a) add blockListItem to current chunk
-                    //   b) loop
-                    // 2) current chunk is empty & last block (size < 10 I think)
-                    //   a) do not add blockListItem to current chunk
-                    //   b) loop terminates
-                    //   c) chunk last added to the list is the last chunk
-                    // 3) current chunk is not empty & not the last block
-                    //   a) if size of block + size of chunk >10k
-                    //     i) add chunk to list  <-- tieOffChunk
-                    //     ii) reset chunk counters
-                    //   b) add blockListItem to chunk
-                    //   c) loop
-                    // 4) current chunk is not empty & last block
-                    //   a) add chunk to list  <-- tieOffChunk
-                    //   b) do not add blockListItem to chunk
-                    //   c) loop terminates
-                    tieOffChunk = (currentChunkSize != 0) && ((blockListItem.Length < 10) || (currentChunkSize + blockListItem.Length > MAXDOWNLOADBYTES));
-                    if (tieOffChunk)
-                    {
-                        // chunk complete, add it to the list & reset counters
-                        chunks.Add(new Chunk
-                        {
-                            BlobName = blobContainerName + "/" + myBlobActivity.Name,
-                            Length = currentChunkSize,
-                            LastBlockName = currentChunkLastBlockName,
-                            Start = currentStartingByteOffset,
-                            BlobAccountConnectionName = nsgSourceDataAccount
-                        });
-                        currentStartingByteOffset += currentChunkSize; // the next chunk starts at this offset
-                        currentChunkSize = 0;
-                        tieOffChunk = false;
-                    }
-                    if (blockListItem.Length > 10)
-                    {
-                        numberOfBlocks++;
-                        sizeOfBlocks += blockListItem.Length;
-
-                        currentChunkSize += blockListItem.Length;
-                        currentChunkLastBlockName = blockListItem.Name;
-                    }
-                }
-
-            }
-            if (currentChunkSize != 0)
-            {
-                // residual chunk
-                chunks.Add(new Chunk
-                {
-                    BlobName = blobContainerName + "/" + myBlobActivity.Name,
-                    Length = currentChunkSize,
-                    LastBlockName = currentChunkLastBlockName,
-                    Start = currentStartingByteOffset,
-                    BlobAccountConnectionName = nsgSourceDataAccount
-                });
-            }
-
-            if (chunks.Count > 0)
-            {
-                var lastChunk = chunks[chunks.Count - 1];
-                checkpoint.PutCheckpoint(checkpointTableActivity, lastChunk.LastBlockName, lastChunk.Start + lastChunk.Length);
-            }
-
-            // add the chunks to output queue
-            // they are sent automatically by Functions configuration
-            foreach (var chunk in chunks)
-            {
-                outputChunksActivity.Add(chunk);
-                log.Info("added chunks");
-                if (chunk.Length == 0)
-                {
-                    log.Error("chunk length is 0");
-                }
-            }
-            */
 
         }
     }

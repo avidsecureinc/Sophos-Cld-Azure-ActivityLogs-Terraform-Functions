@@ -65,7 +65,6 @@ namespace NwNsgProject
 
         public static async Task SendMessagesDownstream(string myMessages, TraceWriter log)
         {
-            log.Info($"sending message info {myMessages}");
             await obAvidSecure(myMessages, log);
             
         }
@@ -85,16 +84,13 @@ namespace NwNsgProject
             logs.uuid = customerid;
             string jsonString = JsonConvert.SerializeObject(logs);
 
-            log.Info("issue here");
             var client = new SingleHttpClientInstance();
             try
             {
                 HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, avidAddress);
                 req.Headers.Accept.Clear();
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                // req.Headers.Add("Authorization", "Splunk " + splunkToken);
-                log.Info($"sending request {avidAddress}");
-                log.Info($"data data data {jsonString}");
+                
                 req.Content = new StringContent(jsonString, Encoding.UTF8, "application/json");
                 HttpResponseMessage response = await SingleHttpClientInstance.SendToSplunk(req);
                 if (response.StatusCode != HttpStatusCode.OK)
