@@ -151,7 +151,7 @@ namespace NwNsgProject
         	string[] all_locations = new string[]{"eastasia","southeastasia","centralus","eastus","eastus2","westus","northcentralus","southcentralus","northeurope","westeurope","japanwest","japaneast","brazilsouth","australiaeast","australiasoutheast","southindia","centralindia","westindia","canadacentral","canadaeast","uksouth","ukwest","westcentralus","westus2","koreacentral","koreasouth","francecentral"};
         	foreach (var nsg in nsgresult.value) {
 
-        		if(((IList)all_locations).Contains(nsg.location)){
+        		if(Array.Exists(all_locations, nsg.location)){
 			   		string loc_nw = nwList[nsg.location];
 			   		string storageId = "";
 			   		if(storageloc.ContainsKey(nsg.location)){
