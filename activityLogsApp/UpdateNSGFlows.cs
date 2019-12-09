@@ -148,22 +148,24 @@ namespace NwNsgProject
         {
         	
         	Dictionary<string, string> storageloc = new Dictionary<string, string>(); 
-        	string[] all_locations = new string[]{"eastasia","southeastasia","centralus","eastus","eastus2","westus","northcentralus","southcentralus","northeurope","westeurope","japanwest","japaneast","brazilsouth","australiaeast","australiasoutheast","southindia","centralindia","westindia","canadacentral","canadaeast","uksouth","ukwest","westcentralus","westus2","koreacentral","koreasouth","francecentral","francesouth","australiacentral","australiacentral2"};
+        	string[] all_locations = new string[]{"eastasia","southeastasia","centralus","eastus","eastus2","westus","northcentralus","southcentralus","northeurope","westeurope","japanwest","japaneast","brazilsouth","australiaeast","australiasoutheast","southindia","centralindia","westindia","canadacentral","canadaeast","uksouth","ukwest","westcentralus","westus2","koreacentral","koreasouth","francecentral"};
         	foreach (var nsg in nsgresult.value) {
-		   		string loc_nw = nwList[nsg.location];
 
-		   		string storageId = "";
-		   		if(storageloc.ContainsKey(nsg.location)){
-		   			storageId = storageloc[nsg.location];
-		   		}else{
-		   			storageId = await check_avid_storage_account(token,subs_id,nsg.location,log);
-		   			storageloc.Add(nsg.location, storageId);
+        		if(all_locations.Contains(nsg.location)){
+			   		string loc_nw = nwList[nsg.location];
+			   		string storageId = "";
+			   		if(storageloc.ContainsKey(nsg.location)){
+			   			storageId = storageloc[nsg.location];
+			   		}else{
+			   			storageId = await check_avid_storage_account(token,subs_id,nsg.location,log);
+			   			storageloc.Add(nsg.location, storageId);
+			   		}
+			   		if(storageId.Equals("null")){
+			   			break;
+		   			}else{
+		   				enable_flow_request(nsg, storageId, loc_nw, subs_id, token, log);
+		   			}
 		   		}
-		   		if(storageId.Equals("null")){
-		   			break;
-	   			}else{
-	   				enable_flow_request(nsg, storageId, loc_nw, subs_id, token, log);
-	   			}
 		   	}
 
 		   	Dictionary<string, string> allnsgloc = new Dictionary<string, string>(); 
@@ -214,7 +216,7 @@ namespace NwNsgProject
             } 
             catch (System.Net.Http.HttpRequestException e)
             {
-                throw new System.Net.Http.HttpRequestException("Reuqest Failed?", e);
+                log.Info("Ignore. Failed for some region");
             }
         }
 
