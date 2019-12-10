@@ -77,7 +77,7 @@ namespace NwNsgProject
 					    var result = JsonConvert.DeserializeObject<NWApiResult>(data);
 					    
 					    foreach (var nw in result.value) {
-					    	nwList.Add(nw.location,nw.name);
+					    	nwList.Add(nw.location,nw.id);
 					    }
 					    
 					}
@@ -184,7 +184,7 @@ namespace NwNsgProject
         }
 
         static async Task enable_flow_request(NetworkSecurityGroup nsg, String storageId, String loc_nw, String subs_id, String token, TraceWriter log){
-        	string enable_flow_logs_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/NetworkWatcherRG/providers/Microsoft.Network/networkWatchers/{1}/configureFlowLog?api-version=2018-11-01";
+        	string enable_flow_logs_url = "https://management.azure.com{0}/configureFlowLog?api-version=2018-11-01";
         	var client = new SingleHttpClientInstance();
         	try
             {
@@ -202,7 +202,7 @@ namespace NwNsgProject
 
             	var content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
                 
-                HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, String.Format(enable_flow_logs_url, subs_id, loc_nw));
+                HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, String.Format(enable_flow_logs_url, loc_nw));
                 req.Content = content;
                 req.Headers.Accept.Clear();
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
