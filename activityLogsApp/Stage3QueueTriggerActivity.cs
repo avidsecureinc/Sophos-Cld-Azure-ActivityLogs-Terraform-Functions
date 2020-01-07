@@ -80,15 +80,13 @@ namespace NwNsgProject
                 return;
             }
             string customerid = Util.GetEnvironmentVariable("customerId");
+            ActivityLogsRecords logs = JsonConvert.DeserializeObject<ActivityLogsRecords>(newClientContent);
+            logs.uuid = customerid;
+            string jsonString = JsonConvert.SerializeObject(logs);
 
             var client = new SingleHttpClientInstance();
             try
             {
-                ActivityLogsRecords logs = JsonConvert.DeserializeObject<ActivityLogsRecords>(newClientContent);
-                logs.uuid = customerid;
-                string jsonString = JsonConvert.SerializeObject(logs);
-            	log.Info($"sending request to: {avidAddress}");
-                log.Info($"activity logs data: {jsonString}");
                 HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, avidAddress);
                 req.Headers.Accept.Clear();
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -106,7 +104,6 @@ namespace NwNsgProject
             }
             catch (Exception f)
             {
-                log.Error(string.Format("Error in parsing: {0}", f.Message));
                 throw new System.Exception("Sending to Splunk. Unplanned exception.", f);
             }
 
