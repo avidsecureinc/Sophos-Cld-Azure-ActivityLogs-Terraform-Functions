@@ -389,6 +389,7 @@ class DeploymentParameters{
     public DeploymentParametersValues storageAccountConnecion {get; set;}
     public DeploymentParametersValues appName {get; set;}
     public DeploymentParametersValues avidAddress {get; set;}
+    public DeploymentParametersValues branch {get; set;}
 }
 class DeploymentParametersValues{
     public String value {get; set;}
