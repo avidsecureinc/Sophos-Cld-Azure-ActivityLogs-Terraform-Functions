@@ -106,7 +106,7 @@ namespace NwNsgProject
             }
             catch (Exception f)
             {
-                log.Error("Error in parsing: {0}", f.Message);
+                log.Error(string.Format("Error in parsing: {0}", f.Message));
                 throw new System.Exception("Sending to Splunk. Unplanned exception.", f);
             }
 
