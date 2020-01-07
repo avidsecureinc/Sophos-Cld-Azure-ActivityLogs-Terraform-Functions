@@ -273,7 +273,7 @@ class ActivityProperties
 {
     public string statusCode {get; set;}
     public string serviceRequestId {get; set;}
-    public String eventCategory {get; set;}
+    public string eventCategory {get; set;}
     public string eventName {get; set;}
     public string operationId {get; set;}
     public string eventProperties {get; set;}
