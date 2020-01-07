@@ -242,6 +242,7 @@ class ActivityLogsRecord
     public string operationName {get; set;}
     public string category {get; set;}
     public string resultType {get; set;}
+    public string resultDescription {get; set;}
     public string resultSignature {get; set;}
     public string durationMs {get; set;}
     public string callerIpAddress {get; set;}
@@ -272,12 +273,20 @@ class ActivityProperties
 {
     public string statusCode {get; set;}
     public string serviceRequestId {get; set;}
-    public String eventCategory {get; set;}
+    public string eventCategory {get; set;}
     public string eventName {get; set;}
     public string operationId {get; set;}
-    public string eventProperties {get; set;}
+    public EventProperties eventProperties {get; set;}
 }
-
+class EventProperties
+{
+    public string Description {get; set;}
+    public string ResourceName {get; set;}
+    public string title {get; set;}
+    public string type {get; set;}
+    public string details {get; set;}
+    public string subscriptionId {get; set;}
+}
 class ActivityEvidence
 {
     public string role {get; set;}
