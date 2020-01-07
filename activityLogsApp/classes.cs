@@ -242,6 +242,7 @@ class ActivityLogsRecord
     public string operationName {get; set;}
     public string category {get; set;}
     public string resultType {get; set;}
+    public string resultDescription {get; set;}
     public string resultSignature {get; set;}
     public string durationMs {get; set;}
     public string callerIpAddress {get; set;}

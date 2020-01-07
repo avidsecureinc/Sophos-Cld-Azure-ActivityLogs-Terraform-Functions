@@ -87,6 +87,8 @@ namespace NwNsgProject
             var client = new SingleHttpClientInstance();
             try
             {
+            	log.Info($"sending request to: {avidAddress}");
+                log.Info($"activity logs data: {jsonString}");
                 HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, avidAddress);
                 req.Headers.Accept.Clear();
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
