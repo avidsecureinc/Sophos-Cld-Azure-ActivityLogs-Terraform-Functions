@@ -80,12 +80,12 @@ namespace NwNsgProject
                 return;
             }
             string customerid = Util.GetEnvironmentVariable("customerId");
-            logs.uuid = customerid;
 
             var client = new SingleHttpClientInstance();
             try
             {
                 ActivityLogsRecords logs = JsonConvert.DeserializeObject<ActivityLogsRecords>(newClientContent);
+                logs.uuid = customerid;
                 string jsonString = JsonConvert.SerializeObject(logs);
             	log.Info($"sending request to: {avidAddress}");
                 log.Info($"activity logs data: {jsonString}");
