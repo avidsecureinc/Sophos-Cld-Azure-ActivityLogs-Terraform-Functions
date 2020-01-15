@@ -374,8 +374,9 @@ namespace NwNsgProject
         	string local = Util.GetEnvironmentVariable("local");
         	string storageAccountConnecion = Util.GetEnvironmentVariable("storageAccountConnecion");
         	string avidAddress = Util.GetEnvironmentVariable("avidFlowAddress");
+			string branch = Util.GetEnvironmentVariable("branch");
 
-		   	string deployment_json_string = @"{""properties"": {""templateLink"": {""uri"": ""https://s3-us-west-2.amazonaws.com/avidcore/azure/azureFlowDeploy.json"",""contentVersion"": ""1.0.0.0""},""mode"": ""Incremental"",""parameters"": {""customerId"": {""value"": ""null""},""nsgSourceDataConnection"":{""value"":""null""},""storageAccountName"":{""value"":""null""},""storageAccountConnecion"":{""value"":""null""},""appName"":{""value"":""null""},""avidAddress"":{""value"":""null""} } } }";
+		   	string deployment_json_string = @"{""properties"": {""templateLink"": {""uri"": ""https://s3-us-west-2.amazonaws.com/avidcore/azure/azureFlowDeploy.json"",""contentVersion"": ""1.0.0.0""},""mode"": ""Incremental"",""parameters"": {""customerId"": {""value"": ""null""},""nsgSourceDataConnection"":{""value"":""null""},""storageAccountName"":{""value"":""null""},""storageAccountConnecion"":{""value"":""null""},""appName"":{""value"":""null""},""avidAddress"":{""value"":""null""},""branch"":{""value"":""null""} } } }";
 
 		    var deployment_json = JsonConvert.DeserializeObject<WebAppDeployment>(deployment_json_string);
 
@@ -386,6 +387,7 @@ namespace NwNsgProject
 		    deployment_json.properties.parameters.appName.value = appNameStage1;
 		    deployment_json.properties.parameters.storageAccountConnecion.value = storageAccountConnecion;
 		    deployment_json.properties.parameters.avidAddress.value = avidAddress;
+			deployment_json.properties.parameters.branch.value = branch;
 
 		    string filled_url = String.Format(create_deployment_url, subs_id, resourceGroup, appNameStage1);
 
