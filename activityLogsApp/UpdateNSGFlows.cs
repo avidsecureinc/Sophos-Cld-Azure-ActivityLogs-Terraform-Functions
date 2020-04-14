@@ -306,7 +306,7 @@ namespace NwNsgProject
         	string appNameStage1 = local + "AvidFlowLogs" + subscription_tag  + location_code;
         	string storage_account_name_activity = local + "avidact" + subscription_tag;
 
-        	string storage_json_string = @"{""sku"": {""name"": ""Standard_GRS""}, ""kind"": ""StorageV2"", ""location"": ""eastus"", ""properties""{""supportsHttpsTrafficOnly"": true, ""networkAcls"": {""bypass"": ""AzureServices"", ""defaultAction"": ""Deny""}}}";
+        	string storage_json_string = @"{""sku"": {""name"": ""Standard_GRS""}, ""kind"": ""StorageV2"", ""location"": ""eastus"", ""properties""{""supportsHttpsTrafficOnly"": true}}";
         	var storage_json = JsonConvert.DeserializeObject<StorageAccountPutObj>(storage_json_string);
         	storage_json.location = location;
         	string filled_url = String.Format(create_storage_account_url, subs_id, resourceGroup, storage_account_name);
