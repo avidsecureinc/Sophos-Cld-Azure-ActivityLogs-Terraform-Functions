@@ -294,7 +294,7 @@ namespace NwNsgProject
 
         static async Task create_resources( String token, String subs_id, String location_code, String storage_account_name, String location, TraceWriter log){
 
-        	string create_storage_account_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}?api-version=2018-02-01";
+        	string create_storage_account_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}?api-version=2019-06-01";
         	
         	string customerid = Util.GetEnvironmentVariable("customerId");
         	string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
@@ -306,7 +306,7 @@ namespace NwNsgProject
         	string appNameStage1 = local + "AvidFlowLogs" + subscription_tag  + location_code;
         	string storage_account_name_activity = local + "avidact" + subscription_tag;
 
-        	string storage_json_string = @"{""sku"": {""name"": ""Standard_GRS""}, ""kind"": ""StorageV2"", ""location"": ""eastus"", ""properties"": {""supportsHttpsTrafficOnly"": true}}";
+        	string storage_json_string = @"{""sku"": {""name"": ""Standard_GRS""}, ""kind"": ""StorageV2"", ""location"": ""eastus""}";
         	var storage_json = JsonConvert.DeserializeObject<StorageAccountPutObj>(storage_json_string);
         	storage_json.location = location;
         	string filled_url = String.Format(create_storage_account_url, subs_id, resourceGroup, storage_account_name);
