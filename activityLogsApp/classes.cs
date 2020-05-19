@@ -446,3 +446,11 @@ class RetentionActionDefinitionCreation{
 class RetentionActionDefinitionModification{
     public int daysAfterModificationGreaterThan {get; set;}
 }
+
+class FlowLogStatusResponse{
+    public FlowLogStatusProperties properties {get; set;}
+}
+
+class FlowLogStatusProperties{
+    public Boolean enabled {get; set;}
+}

@@ -163,9 +163,9 @@ namespace NwNsgProject
 			   		}
 			   		if(storageId.Equals("null")){
 			   			break;
-		   			}else{
-		   				enable_flow_request(nsg, storageId, loc_nw, subs_id, token, log);
 		   			}
+		   			String was_enabled = check_and_enable_flow_request(nsg, storageId, loc_nw, subs_id, token, log);
+		   			
 		   		}
 		   	}
 
@@ -183,14 +183,37 @@ namespace NwNsgProject
 		   	}
         }
 
-        static async Task enable_flow_request(NetworkSecurityGroup nsg, String storageId, String loc_nw, String subs_id, String token, TraceWriter log){
+        static async Task<String> check_and_enable_flow_request(NetworkSecurityGroup nsg, String storageId, String loc_nw, String subs_id, String token, TraceWriter log){
         	string enable_flow_logs_url = "https://management.azure.com{0}/configureFlowLog?api-version=2018-11-01";
+        	string query_flow_logs_url = "https://management.azure.com{0}/queryFlowLogStatus?api-version=2020-04-01";
+        	var content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
+
         	var client = new SingleHttpClientInstance();
         	try
             {
-            	
+
             	dynamic myObject = new JObject();
             	myObject.targetResourceId = nsg.id;
+            	HttpRequestMessage checkReq = new HttpRequestMessage(HttpMethod.Post, String.Format(query_flow_logs_url, loc_nw));
+            	checkReq.Content = content;
+                checkReq.Headers.Accept.Clear();
+                checkReq.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpResponseMessage check_response = await SingleHttpClientInstance.sendApiPostRequest(checkReq, token);
+                
+                if (check_response.IsSuccessStatusCode)
+				{
+				    string check_data =  await check_response.Content.ReadAsStringAsync();
+				    var check_result = JsonConvert.DeserializeObject<FlowLogStatusResponse>(check_data);
+				    if(check_result.enabled){
+				    	return "false";
+				    }
+				    
+				} else{
+					return "false";
+				}
+
+
             	dynamic properties = new JObject();
             	properties.storageId = storageId;
             	properties.enabled = true;
@@ -200,7 +223,7 @@ namespace NwNsgProject
             	properties.retentionPolicy = retention;
             	myObject.properties = properties;
 
-            	var content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
+            	
                 
                 HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, String.Format(enable_flow_logs_url, loc_nw));
                 req.Content = content;
@@ -212,6 +235,7 @@ namespace NwNsgProject
                 if (response.IsSuccessStatusCode)
 				{
 				    string data =  await response.Content.ReadAsStringAsync();
+				    return "true";
 				    
 				}
             } 
