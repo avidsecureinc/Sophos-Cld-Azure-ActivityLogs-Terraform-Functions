@@ -239,12 +239,13 @@ namespace NwNsgProject
 				    return "true";
 				    
 				}
-				return "false";
+
             } 
             catch (System.Net.Http.HttpRequestException e)
             {
                 log.Info("Ignore. Failed for some region");
             }
+            return "false";
         }
 
         static async Task<String> check_avid_storage_account( String token, String subs_id, String location ,TraceWriter log){
