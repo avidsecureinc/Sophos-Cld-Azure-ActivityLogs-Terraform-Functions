@@ -164,7 +164,7 @@ namespace NwNsgProject
 			   		if(storageId.Equals("null")){
 			   			break;
 		   			}
-		   			String was_enabled = check_and_enable_flow_request(nsg, storageId, loc_nw, subs_id, token, log);
+		   			check_and_enable_flow_request(nsg, storageId, loc_nw, subs_id, token, log);
 		   			
 		   		}
 		   	}
@@ -186,7 +186,7 @@ namespace NwNsgProject
         static async Task<String> check_and_enable_flow_request(NetworkSecurityGroup nsg, String storageId, String loc_nw, String subs_id, String token, TraceWriter log){
         	string enable_flow_logs_url = "https://management.azure.com{0}/configureFlowLog?api-version=2018-11-01";
         	string query_flow_logs_url = "https://management.azure.com{0}/queryFlowLogStatus?api-version=2020-04-01";
-        	var content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
+        	
 
         	var client = new SingleHttpClientInstance();
         	try
@@ -195,6 +195,7 @@ namespace NwNsgProject
             	dynamic myObject = new JObject();
             	myObject.targetResourceId = nsg.id;
             	HttpRequestMessage checkReq = new HttpRequestMessage(HttpMethod.Post, String.Format(query_flow_logs_url, loc_nw));
+            	var content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
             	checkReq.Content = content;
                 checkReq.Headers.Accept.Clear();
                 checkReq.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -205,7 +206,7 @@ namespace NwNsgProject
 				{
 				    string check_data =  await check_response.Content.ReadAsStringAsync();
 				    var check_result = JsonConvert.DeserializeObject<FlowLogStatusResponse>(check_data);
-				    if(check_result.enabled){
+				    if(check_result.properties.enabled){
 				    	return "false";
 				    }
 				    
@@ -222,7 +223,7 @@ namespace NwNsgProject
             	retention.enabled = true;
             	properties.retentionPolicy = retention;
             	myObject.properties = properties;
-
+            	content = new StringContent(myObject.ToString(), Encoding.UTF8, "application/json");
             	
                 
                 HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, String.Format(enable_flow_logs_url, loc_nw));
@@ -238,11 +239,13 @@ namespace NwNsgProject
 				    return "true";
 				    
 				}
+
             } 
             catch (System.Net.Http.HttpRequestException e)
             {
                 log.Info("Ignore. Failed for some region");
             }
+            return "false";
         }
 
         static async Task<String> check_avid_storage_account( String token, String subs_id, String location ,TraceWriter log){
