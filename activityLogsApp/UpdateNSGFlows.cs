@@ -57,6 +57,8 @@ namespace NwNsgProject
                 throw new System.Net.Http.HttpRequestException("Sending to Splunk. Is Splunk service running?", e);
             }
 
+            log.Info("I am here 1", subs_ids);
+
             foreach(var subs_id in subs_ids){
 	            ////// get network watchers first
 
@@ -71,11 +73,12 @@ namespace NwNsgProject
 	                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 	                
 	                HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
+                    log.Info("I am here 2", response);
 	                if (response.IsSuccessStatusCode)
 					{
 					    string data =  await response.Content.ReadAsStringAsync();
 					    var result = JsonConvert.DeserializeObject<NWApiResult>(data);
-					    
+					    log.Info("I am here 3", result.value);
 					    foreach (var nw in result.value) {
 					    	nwList.Add(nw.location,nw.id);
 					    }
@@ -97,11 +100,13 @@ namespace NwNsgProject
 	                req.Headers.Accept.Clear();
 	                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 	                HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
-
+                    log.Info("I am here 4", response);
 	                if (response.IsSuccessStatusCode)
-					{
+					{ 
+
 					    string data =  await response.Content.ReadAsStringAsync();
 					    var result = JsonConvert.DeserializeObject<NSGApiResult>(data);
+                        log.Info("I am here 5", result);
 					   	await enable_flow_logs(result, nwList, token, subs_id, log);
 					}
 	            } 
