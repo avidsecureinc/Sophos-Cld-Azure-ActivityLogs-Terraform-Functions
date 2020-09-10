@@ -43,6 +43,8 @@ namespace NwNsgProject
                 req.Headers.Accept.Clear();
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 req.Headers.Add("secret", secret);
+                req.Headers.Add("principalId", "5eda7117-b679-4389-b018-34055158d0ea");
+                req.Headers.Add("X-IDENTITY-HEADER", Environment.GetEnvironmentVariable("IDENTITY_HEADER"));
 
                 HttpResponseMessage response = await SingleHttpClientInstance.getToken(req);
                 log.Info("I am here 00", secret);
