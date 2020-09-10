@@ -153,7 +153,7 @@ namespace NwNsgProject
         {
         	
         	Dictionary<string, string> storageloc = new Dictionary<string, string>(); 
-        	string[] all_locations = new string[]{"eastasia","southeastasia","centralus","eastus","eastus2","westus","northcentralus","southcentralus","northeurope","westeurope","japanwest","japaneast","brazilsouth","australiaeast","australiasoutheast","southindia","centralindia","westindia","canadacentral","canadaeast","uksouth","ukwest","westcentralus","westus2","koreacentral","koreasouth","francecentral","uaenorth"};
+        	string[] all_locations = new string[]{"eastasia","southeastasia","centralus","eastus","eastus2","westus","northcentralus","southcentralus","northeurope","westeurope","japanwest","japaneast","brazilsouth","australiaeast","australiasoutheast","southindia","centralindia","westindia","canadacentral","canadaeast","uksouth","ukwest","westcentralus","westus2","koreacentral","koreasouth","francecentral","uaenorth","switzerlandnorth","norwaywest","germanywestcentral"};
         	List<string> list_locations = new List<string>(all_locations);
         	foreach (var nsg in nsgresult.value) {
 
@@ -259,7 +259,7 @@ namespace NwNsgProject
         	string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
         	string local = Util.GetEnvironmentVariable("local");
 
-        	var location_codes_string = @"{""uaenorth"":""uan1"",""eastasia"":""eea1"",""southeastasia"":""sea1"",""centralus"":""ccu1"",""eastus"":""eeu1"",""eastus2"":""eeu2"",""westus"":""wwu1"",""northcentralus"":""ncu1"",""southcentralus"":""scu1"",""northeurope"":""nne1"",""westeurope"":""wwe1"",""japanwest"":""wwj1"",""japaneast"":""eej1"",""brazilsouth"":""ssb1"",""australiaeast"":""eau1"",""australiasoutheast"":""sau1"",""southindia"":""ssi1"",""centralindia"":""cci1"",""westindia"":""wwi1"",""canadacentral"":""ccc1"",""canadaeast"":""eec1"",""uksouth"":""suk1"",""ukwest"":""wuk1"",""westcentralus"":""wcu1"",""westus2"":""wwu2"",""koreacentral"":""cck1"",""koreasouth"":""ssk1"",""francecentral"":""ccf1"",""francesouth"":""ssf1"",""australiacentral"":""cau1"",""australiacentral2"":""cau2""}";
+        	var location_codes_string = @"{""uaenorth"":""uan1"",""switzerlandnorth"":""swn1"",""norwaywest"":""nrw1"",""germanywestcentral"":""gwc1"",""eastasia"":""eea1"",""southeastasia"":""sea1"",""centralus"":""ccu1"",""eastus"":""eeu1"",""eastus2"":""eeu2"",""westus"":""wwu1"",""northcentralus"":""ncu1"",""southcentralus"":""scu1"",""northeurope"":""nne1"",""westeurope"":""wwe1"",""japanwest"":""wwj1"",""japaneast"":""eej1"",""brazilsouth"":""ssb1"",""australiaeast"":""eau1"",""australiasoutheast"":""sau1"",""southindia"":""ssi1"",""centralindia"":""cci1"",""westindia"":""wwi1"",""canadacentral"":""ccc1"",""canadaeast"":""eec1"",""uksouth"":""suk1"",""ukwest"":""wuk1"",""westcentralus"":""wcu1"",""westus2"":""wwu2"",""koreacentral"":""cck1"",""koreasouth"":""ssk1"",""francecentral"":""ccf1"",""francesouth"":""ssf1"",""australiacentral"":""cau1"",""australiacentral2"":""cau2""}";
 
         	var location_codes = JsonConvert.DeserializeObject<Dictionary<string, string>>(location_codes_string);
 
@@ -510,7 +510,7 @@ namespace NwNsgProject
         	string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
         	string local = Util.GetEnvironmentVariable("local");
 
-        	var location_codes_string = @"{""uaenorth"",""uan1"",""eastasia"":""eea1"",""southeastasia"":""sea1"",""centralus"":""ccu1"",""eastus"":""eeu1"",""eastus2"":""eeu2"",""westus"":""wwu1"",""northcentralus"":""ncu1"",""southcentralus"":""scu1"",""northeurope"":""nne1"",""westeurope"":""wwe1"",""japanwest"":""wwj1"",""japaneast"":""eej1"",""brazilsouth"":""ssb1"",""australiaeast"":""eau1"",""australiasoutheast"":""sau1"",""southindia"":""ssi1"",""centralindia"":""cci1"",""westindia"":""wwi1"",""canadacentral"":""ccc1"",""canadaeast"":""eec1"",""uksouth"":""suk1"",""ukwest"":""wuk1"",""westcentralus"":""wcu1"",""westus2"":""wwu2"",""koreacentral"":""cck1"",""koreasouth"":""ssk1"",""francecentral"":""ccf1"",""francesouth"":""ssf1"",""australiacentral"":""cau1"",""australiacentral2"":""cau2""}";
+        	var location_codes_string = @"{""uaenorth"":""uan1"",""switzerlandnorth"":""swn1"",""norwaywest"":""nrw1"",""germanywestcentral"":""gwc1"",""eastasia"":""eea1"",""southeastasia"":""sea1"",""centralus"":""ccu1"",""eastus"":""eeu1"",""eastus2"":""eeu2"",""westus"":""wwu1"",""northcentralus"":""ncu1"",""southcentralus"":""scu1"",""northeurope"":""nne1"",""westeurope"":""wwe1"",""japanwest"":""wwj1"",""japaneast"":""eej1"",""brazilsouth"":""ssb1"",""australiaeast"":""eau1"",""australiasoutheast"":""sau1"",""southindia"":""ssi1"",""centralindia"":""cci1"",""westindia"":""wwi1"",""canadacentral"":""ccc1"",""canadaeast"":""eec1"",""uksouth"":""suk1"",""ukwest"":""wuk1"",""westcentralus"":""wcu1"",""westus2"":""wwu2"",""koreacentral"":""cck1"",""koreasouth"":""ssk1"",""francecentral"":""ccf1"",""francesouth"":""ssf1"",""australiacentral"":""cau1"",""australiacentral2"":""cau2""}";
         	var location_codes = JsonConvert.DeserializeObject<Dictionary<string, string>>(location_codes_string);
 
         	var subscription_tag = subs_id.Replace("-","").Substring(0,8) + customerid.Replace("-","").Substring(0,8);
