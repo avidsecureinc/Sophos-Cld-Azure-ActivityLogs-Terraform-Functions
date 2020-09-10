@@ -31,7 +31,7 @@ namespace NwNsgProject
 		    var subs_ids = Environment.GetEnvironmentVariable("subscriptionIds").Split(',');
 		    string token = null;
 		    
-		    UriBuilder builder = new UriBuilder(Environment.GetEnvironmentVariable("MSI_ENDPOINT"));
+		    UriBuilder builder = new UriBuilder(Environment.GetEnvironmentVariable("IDENTITY_ENDPOINT"));
 			string apiversion = Uri.EscapeDataString("2017-09-01");
 			string resource = Uri.EscapeDataString("https://management.azure.com/");
 			builder.Query = "api-version="+apiversion+"&resource="+resource;
@@ -42,7 +42,7 @@ namespace NwNsgProject
                 HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, builder.Uri);
                 req.Headers.Accept.Clear();
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                req.Headers.Add("secret", secret);
+                // req.Headers.Add("secret", secret);
                 req.Headers.Add("principalId", "5eda7117-b679-4389-b018-34055158d0ea");
                 req.Headers.Add("X-IDENTITY-HEADER", Environment.GetEnvironmentVariable("IDENTITY_HEADER"));
 
