@@ -45,6 +45,9 @@ namespace NwNsgProject
                 req.Headers.Add("secret", secret);
 
                 HttpResponseMessage response = await SingleHttpClientInstance.getToken(req);
+                log.Info("I am here 00", secret);
+                var contentliii = await response.Content.ReadAsStringAsync();
+                log.Info("I am here 4"+ contentliii);
                 if (response.IsSuccessStatusCode)
 				{
 				    string data =  await response.Content.ReadAsStringAsync();
