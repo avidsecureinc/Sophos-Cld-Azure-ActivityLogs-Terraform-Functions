@@ -34,7 +34,7 @@ namespace NwNsgProject
 		    UriBuilder builder = new UriBuilder(Environment.GetEnvironmentVariable("IDENTITY_ENDPOINT"));
 			string apiversion = Uri.EscapeDataString("2019-08-01");
 			string resource = Uri.EscapeDataString("https://management.azure.com/");
-			builder.Query = "api-version="+apiversion+"&resource="+resource+"&principalId=5eda7117-b679-4389-b018-34055158d0ea";
+			builder.Query = "api-version="+apiversion+"&resource="+resource+"&principal_id=5eda7117-b679-4389-b018-34055158d0ea";
 			
 			var client = new SingleHttpClientInstance();
             try
