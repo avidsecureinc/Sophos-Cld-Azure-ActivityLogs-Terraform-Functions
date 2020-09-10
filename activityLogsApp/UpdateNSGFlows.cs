@@ -100,8 +100,8 @@ namespace NwNsgProject
 	                req.Headers.Accept.Clear();
 	                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 	                HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
-                    var content = await response.Content.ReadAsStringAsync()
-                    log.Info("I am here 4"+ content);
+                    var contentlii = await response.Content.ReadAsStringAsync();
+                    log.Info("I am here 4"+ contentliii);
 	                if (response.IsSuccessStatusCode)
 					{ 
 
