@@ -32,7 +32,7 @@ namespace NwNsgProject
 		    string token = null;
 		    
 		    UriBuilder builder = new UriBuilder(Environment.GetEnvironmentVariable("IDENTITY_ENDPOINT"));
-			string apiversion = Uri.EscapeDataString("2017-09-01");
+			string apiversion = Uri.EscapeDataString("2019-08-01");
 			string resource = Uri.EscapeDataString("https://management.azure.com/");
 			builder.Query = "api-version="+apiversion+"&resource="+resource;
 			
