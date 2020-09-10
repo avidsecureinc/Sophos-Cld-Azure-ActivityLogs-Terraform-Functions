@@ -42,7 +42,7 @@ namespace NwNsgProject
                 HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, builder.Uri);
                 req.Headers.Accept.Clear();
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                req.Headers.Add("secret", Environment.GetEnvironmentVariable("MSI_SECRET"));
+                req.Headers.Add("secret", secret);
 
                 HttpResponseMessage response = await SingleHttpClientInstance.getToken(req);
                 if (response.IsSuccessStatusCode)
@@ -50,6 +50,8 @@ namespace NwNsgProject
 				    string data =  await response.Content.ReadAsStringAsync();
 				    var tokenObj = JsonConvert.DeserializeObject<Token>(data);
 				    token = tokenObj.access_token;
+
+                    log.Info("I am here 0", token);
 				}
             }
             catch (System.Net.Http.HttpRequestException e)
