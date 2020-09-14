@@ -31,10 +31,10 @@ namespace NwNsgProject
 		    var subs_ids = Environment.GetEnvironmentVariable("subscriptionIds").Split(',');
 		    string token = null;
 		    
-		    UriBuilder builder = new UriBuilder(Environment.GetEnvironmentVariable("IDENTITY_ENDPOINT"));
-			string apiversion = Uri.EscapeDataString("2019-08-01");
+		    UriBuilder builder = new UriBuilder(Environment.GetEnvironmentVariable("MSI_ENDPOINT"));
+			string apiversion = Uri.EscapeDataString("2017-09-01");
 			string resource = Uri.EscapeDataString("https://management.azure.com/");
-			builder.Query = "api-version="+apiversion+"&resource="+resource+"&principal_id=5eda7117-b679-4389-b018-34055158d0ea";
+			builder.Query = "api-version="+apiversion+"&resource="+resource;
 			
 			var client = new SingleHttpClientInstance();
             try
@@ -42,28 +42,20 @@ namespace NwNsgProject
                 HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, builder.Uri);
                 req.Headers.Accept.Clear();
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                req.Headers.Add("secret", secret);
-                req.Headers.Add("X-IDENTITY-HEADER", Environment.GetEnvironmentVariable("IDENTITY_HEADER"));
+                req.Headers.Add("secret", Environment.GetEnvironmentVariable("MSI_SECRET"));
 
                 HttpResponseMessage response = await SingleHttpClientInstance.getToken(req);
-                log.Info("I am here 00", secret);
-                var contentliii = await response.Content.ReadAsStringAsync();
-                log.Info("I am here 4"+ contentliii);
                 if (response.IsSuccessStatusCode)
 				{
 				    string data =  await response.Content.ReadAsStringAsync();
 				    var tokenObj = JsonConvert.DeserializeObject<Token>(data);
 				    token = tokenObj.access_token;
-
-                    log.Info("I am here 0", token);
 				}
             }
             catch (System.Net.Http.HttpRequestException e)
             {
                 throw new System.Net.Http.HttpRequestException("Sending to Splunk. Is Splunk service running?", e);
             }
-
-            log.Info("I am here 1", subs_ids.ToString());
 
             foreach(var subs_id in subs_ids){
 	            ////// get network watchers first
@@ -79,12 +71,11 @@ namespace NwNsgProject
 	                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 	                
 	                HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
-                    log.Info("I am here 2", response.ToString());
 	                if (response.IsSuccessStatusCode)
 					{
 					    string data =  await response.Content.ReadAsStringAsync();
 					    var result = JsonConvert.DeserializeObject<NWApiResult>(data);
-					    log.Info("I am here 3", result.value.ToString());
+					    
 					    foreach (var nw in result.value) {
 					    	nwList.Add(nw.location,nw.id);
 					    }
@@ -106,14 +97,11 @@ namespace NwNsgProject
 	                req.Headers.Accept.Clear();
 	                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 	                HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
-                    var contentlii = await response.Content.ReadAsStringAsync();
-                    log.Info("I am here 4"+ contentlii);
-	                if (response.IsSuccessStatusCode)
-					{ 
 
+	                if (response.IsSuccessStatusCode)
+					{
 					    string data =  await response.Content.ReadAsStringAsync();
 					    var result = JsonConvert.DeserializeObject<NSGApiResult>(data);
-                        log.Info("I am here 5", result.ToString());
 					   	await enable_flow_logs(result, nwList, token, subs_id, log);
 					}
 	            } 
@@ -160,7 +148,7 @@ namespace NwNsgProject
         {
         	
         	Dictionary<string, string> storageloc = new Dictionary<string, string>(); 
-        	string[] all_locations = new string[]{"eastasia","southeastasia","centralus","eastus","eastus2","westus","northcentralus","southcentralus","northeurope","westeurope","japanwest","japaneast","brazilsouth","australiaeast","australiasoutheast","southindia","centralindia","westindia","canadacentral","canadaeast","uksouth","ukwest","westcentralus","westus2","koreacentral","koreasouth","francecentral","uaenorth","switzerlandnorth","norwaywest","germanywestcentral"};
+        	string[] all_locations = new string[]{"eastasia","southeastasia","centralus","eastus","eastus2","westus","northcentralus","southcentralus","northeurope","westeurope","japanwest","japaneast","brazilsouth","australiaeast","australiasoutheast","southindia","centralindia","westindia","canadacentral","canadaeast","uksouth","ukwest","westcentralus","westus2","koreacentral","koreasouth","francecentral","uaenorth"};
         	List<string> list_locations = new List<string>(all_locations);
         	foreach (var nsg in nsgresult.value) {
 
@@ -266,7 +254,7 @@ namespace NwNsgProject
         	string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
         	string local = Util.GetEnvironmentVariable("local");
 
-        	var location_codes_string = @"{""uaenorth"":""uan1"",""switzerlandnorth"":""swn1"",""norwaywest"":""nrw1"",""germanywestcentral"":""gwc1"",""eastasia"":""eea1"",""southeastasia"":""sea1"",""centralus"":""ccu1"",""eastus"":""eeu1"",""eastus2"":""eeu2"",""westus"":""wwu1"",""northcentralus"":""ncu1"",""southcentralus"":""scu1"",""northeurope"":""nne1"",""westeurope"":""wwe1"",""japanwest"":""wwj1"",""japaneast"":""eej1"",""brazilsouth"":""ssb1"",""australiaeast"":""eau1"",""australiasoutheast"":""sau1"",""southindia"":""ssi1"",""centralindia"":""cci1"",""westindia"":""wwi1"",""canadacentral"":""ccc1"",""canadaeast"":""eec1"",""uksouth"":""suk1"",""ukwest"":""wuk1"",""westcentralus"":""wcu1"",""westus2"":""wwu2"",""koreacentral"":""cck1"",""koreasouth"":""ssk1"",""francecentral"":""ccf1"",""francesouth"":""ssf1"",""australiacentral"":""cau1"",""australiacentral2"":""cau2""}";
+        	var location_codes_string = @"{""uaenorth"":""uan1"",""eastasia"":""eea1"",""southeastasia"":""sea1"",""centralus"":""ccu1"",""eastus"":""eeu1"",""eastus2"":""eeu2"",""westus"":""wwu1"",""northcentralus"":""ncu1"",""southcentralus"":""scu1"",""northeurope"":""nne1"",""westeurope"":""wwe1"",""japanwest"":""wwj1"",""japaneast"":""eej1"",""brazilsouth"":""ssb1"",""australiaeast"":""eau1"",""australiasoutheast"":""sau1"",""southindia"":""ssi1"",""centralindia"":""cci1"",""westindia"":""wwi1"",""canadacentral"":""ccc1"",""canadaeast"":""eec1"",""uksouth"":""suk1"",""ukwest"":""wuk1"",""westcentralus"":""wcu1"",""westus2"":""wwu2"",""koreacentral"":""cck1"",""koreasouth"":""ssk1"",""francecentral"":""ccf1"",""francesouth"":""ssf1"",""australiacentral"":""cau1"",""australiacentral2"":""cau2""}";
 
         	var location_codes = JsonConvert.DeserializeObject<Dictionary<string, string>>(location_codes_string);
 
@@ -517,7 +505,7 @@ namespace NwNsgProject
         	string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
         	string local = Util.GetEnvironmentVariable("local");
 
-        	var location_codes_string = @"{""uaenorth"":""uan1"",""switzerlandnorth"":""swn1"",""norwaywest"":""nrw1"",""germanywestcentral"":""gwc1"",""eastasia"":""eea1"",""southeastasia"":""sea1"",""centralus"":""ccu1"",""eastus"":""eeu1"",""eastus2"":""eeu2"",""westus"":""wwu1"",""northcentralus"":""ncu1"",""southcentralus"":""scu1"",""northeurope"":""nne1"",""westeurope"":""wwe1"",""japanwest"":""wwj1"",""japaneast"":""eej1"",""brazilsouth"":""ssb1"",""australiaeast"":""eau1"",""australiasoutheast"":""sau1"",""southindia"":""ssi1"",""centralindia"":""cci1"",""westindia"":""wwi1"",""canadacentral"":""ccc1"",""canadaeast"":""eec1"",""uksouth"":""suk1"",""ukwest"":""wuk1"",""westcentralus"":""wcu1"",""westus2"":""wwu2"",""koreacentral"":""cck1"",""koreasouth"":""ssk1"",""francecentral"":""ccf1"",""francesouth"":""ssf1"",""australiacentral"":""cau1"",""australiacentral2"":""cau2""}";
+        	var location_codes_string = @"{""uaenorth"",""uan1"",""eastasia"":""eea1"",""southeastasia"":""sea1"",""centralus"":""ccu1"",""eastus"":""eeu1"",""eastus2"":""eeu2"",""westus"":""wwu1"",""northcentralus"":""ncu1"",""southcentralus"":""scu1"",""northeurope"":""nne1"",""westeurope"":""wwe1"",""japanwest"":""wwj1"",""japaneast"":""eej1"",""brazilsouth"":""ssb1"",""australiaeast"":""eau1"",""australiasoutheast"":""sau1"",""southindia"":""ssi1"",""centralindia"":""cci1"",""westindia"":""wwi1"",""canadacentral"":""ccc1"",""canadaeast"":""eec1"",""uksouth"":""suk1"",""ukwest"":""wuk1"",""westcentralus"":""wcu1"",""westus2"":""wwu2"",""koreacentral"":""cck1"",""koreasouth"":""ssk1"",""francecentral"":""ccf1"",""francesouth"":""ssf1"",""australiacentral"":""cau1"",""australiacentral2"":""cau2""}";
         	var location_codes = JsonConvert.DeserializeObject<Dictionary<string, string>>(location_codes_string);
 
         	var subscription_tag = subs_id.Replace("-","").Substring(0,8) + customerid.Replace("-","").Substring(0,8);
