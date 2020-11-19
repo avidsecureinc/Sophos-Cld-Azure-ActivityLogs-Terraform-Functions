@@ -29,7 +29,7 @@ namespace NwNsgProject
 		    
 		    var secret = Environment.GetEnvironmentVariable("MSI_SECRET");
             var identity_header = Environment.GetEnvironmentVariable("IDENTITY_HEADER");
-            var principal_id = Environment.GetEnvironmentVariable("IDENTITY_HEADER");
+            var principal_id = Environment.GetEnvironmentVariable("PRINCIPAL_ID");
 
 		    var subs_ids = Environment.GetEnvironmentVariable("subscriptionIds").Split(',');
 		    string token = null;
