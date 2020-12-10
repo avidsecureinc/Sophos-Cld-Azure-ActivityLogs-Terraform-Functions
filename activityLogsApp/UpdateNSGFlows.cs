@@ -28,6 +28,9 @@ namespace NwNsgProject
 		{
 		    
 		    var secret = Environment.GetEnvironmentVariable("MSI_SECRET");
+            var identity_header = Environment.GetEnvironmentVariable("IDENTITY_HEADER");
+            var principal_id = Environment.GetEnvironmentVariable("PRINCIPAL_ID");
+
 		    var subs_ids = Environment.GetEnvironmentVariable("subscriptionIds").Split(',');
 		    string token = null;
 		    
@@ -35,6 +38,12 @@ namespace NwNsgProject
 			string apiversion = Uri.EscapeDataString("2017-09-01");
 			string resource = Uri.EscapeDataString("https://management.azure.com/");
 			builder.Query = "api-version="+apiversion+"&resource="+resource;
+
+            if(principal_id != null){
+                builder = new UriBuilder(Environment.GetEnvironmentVariable("IDENTITY_ENDPOINT"));
+                apiversion = Uri.EscapeDataString("2019-08-01");
+                builder.Query = "api-version="+apiversion+"&resource="+resource+"&principal_id="+principal_id;
+            }
 			
 			var client = new SingleHttpClientInstance();
             try
@@ -42,7 +51,10 @@ namespace NwNsgProject
                 HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, builder.Uri);
                 req.Headers.Accept.Clear();
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                req.Headers.Add("secret", Environment.GetEnvironmentVariable("MSI_SECRET"));
+                req.Headers.Add("secret", secret);
+                if(principal_id != null){
+                    req.Headers.Add("X-IDENTITY-HEADER",identity_header);
+                }
 
                 HttpResponseMessage response = await SingleHttpClientInstance.getToken(req);
                 if (response.IsSuccessStatusCode)
