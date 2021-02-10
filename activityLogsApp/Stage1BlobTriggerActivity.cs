@@ -14,7 +14,7 @@ namespace NwNsgProject
 
         [FunctionName("Stage1BlobTriggerActivity")]
         public static async Task Run(
-            [BlobTrigger("%blobContainerNameActivity%/resourceId=/SUBSCRIPTIONS/{subId}/y={blobYear}/m={blobMonth}/d={blobDay}/h={blobHour}/m={blobMinute}/PT1H.json", Connection = "%nsgSourceDataAccount%")]CloudAppendBlob myBlobActivity,
+            [BlobTrigger("%blobContainerNameActivity%/name=AvidActivityLogCollector/resourceId=/SUBSCRIPTIONS/{subId}/y={blobYear}/m={blobMonth}/d={blobDay}/h={blobHour}/m={blobMinute}/PT1H.json", Connection = "%nsgSourceDataAccount%")]CloudAppendBlob myBlobActivity,
             [Queue("activitystage1", Connection = "AzureWebJobsStorage")] ICollector<Chunk> outputChunksActivity,
             [Table("activitycheckpoints", Connection = "AzureWebJobsStorage")] CloudTable checkpointTableActivity,
             string subId, string blobYear, string blobMonth, string blobDay, string blobHour, string blobMinute,
