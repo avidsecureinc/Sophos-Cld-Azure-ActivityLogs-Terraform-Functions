@@ -73,8 +73,8 @@ namespace NwNsgProject
 	            ////// get network watchers first
 
 				Dictionary<string, string> nwList = new Dictionary<string, string>(); 
-				string list_network_watchers = "https://management.azure.com/subscriptions/{0}/providers/Microsoft.Network/networkWatchers?api-version=2018-11-01";
-				string list_nsgs = "https://management.azure.com/subscriptions/{0}/providers/Microsoft.Network/networkSecurityGroups?api-version=2018-11-01";
+				string list_network_watchers = "https://management.azure.com/subscriptions/{0}/providers/Microsoft.Network/networkWatchers?api-version=2021-06-01";
+				string list_nsgs = "https://management.azure.com/subscriptions/{0}/providers/Microsoft.Network/networkSecurityGroups?api-version=2021-06-01";
 				client = new SingleHttpClientInstance();
 	            try
 	            {
@@ -196,8 +196,8 @@ namespace NwNsgProject
         }
 
         static async Task<String> check_and_enable_flow_request(NetworkSecurityGroup nsg, String storageId, String loc_nw, String subs_id, String token, TraceWriter log){
-        	string enable_flow_logs_url = "https://management.azure.com{0}/configureFlowLog?api-version=2018-11-01";
-        	string query_flow_logs_url = "https://management.azure.com{0}/queryFlowLogStatus?api-version=2020-04-01";
+        	string enable_flow_logs_url = "https://management.azure.com{0}/configureFlowLog?api-version=2021-06-01";
+        	string query_flow_logs_url = "https://management.azure.com{0}/queryFlowLogStatus?api-version=2021-06-01";
         	
 
         	var client = new SingleHttpClientInstance();
@@ -261,7 +261,7 @@ namespace NwNsgProject
         }
 
         static async Task<String> check_avid_storage_account( String token, String subs_id, String location ,TraceWriter log){
-        	string fetch_storage_account_details = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}?api-version=2018-07-01";
+        	string fetch_storage_account_details = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}?api-version=2021-08-01";
         	string customerid = Util.GetEnvironmentVariable("customerId");
         	string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
         	string local = Util.GetEnvironmentVariable("local");
@@ -306,7 +306,7 @@ namespace NwNsgProject
         }
 
         static async Task create_retention_policy(String token, String subs_id, String storage_account_name, TraceWriter log){
-        	string policy_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}/managementPolicies/default?api-version=2019-04-01";
+        	string policy_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}/managementPolicies/default?api-version=2021-08-01";
 			string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
         	string filled_url = String.Format(policy_url, subs_id, resourceGroup, storage_account_name);
         	string retention_policy_string = @"{""properties"": { ""policy"": { ""rules"": [ { ""name"": ""Sophosflowlogsdelete"", ""enabled"": true, ""type"": ""Lifecycle"", ""definition"": { ""filters"": { ""blobTypes"": [ ""blockBlob"" ] }, ""actions"": { ""baseBlob"": { ""delete"": { ""daysAfterModificationGreaterThan"": 1 } }, ""snapshot"": { ""delete"": { ""daysAfterCreationGreaterThan"": 1 } } } } } ] } } }";
@@ -333,7 +333,7 @@ namespace NwNsgProject
 
         static async Task create_resources( String token, String subs_id, String location_code, String storage_account_name, String location, TraceWriter log){
 
-        	string create_storage_account_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}?api-version=2019-06-01";
+        	string create_storage_account_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}?api-version=2021-08-01";
         	
         	string customerid = Util.GetEnvironmentVariable("customerId");
         	string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
@@ -379,7 +379,7 @@ namespace NwNsgProject
         }
 
         static async Task listKeys(String token, String storage_account_name, String storage_account_name_activity, String appNameStage1, String subs_id, TraceWriter log){
-        	string list_storage_account_keys = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}/listKeys?api-version=2018-07-01";
+        	string list_storage_account_keys = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}/listKeys?api-version=2021-08-01";
         	string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
 
             HttpRequestMessage list_req = new HttpRequestMessage(HttpMethod.Post, String.Format(list_storage_account_keys, subs_id, resourceGroup, storage_account_name));
@@ -406,7 +406,7 @@ namespace NwNsgProject
         static async Task<Boolean> deploy_app(String token, String accountkey , String storage_account_name, String storage_account_name_activity, String appNameStage1, String subs_id, TraceWriter log){
 
         	string connectionString = "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}";
-        	string create_deployment_url = "https://management.azure.com/subscriptions/{0}/resourcegroups/{1}/providers/Microsoft.Resources/deployments/{2}?api-version=2018-05-01";
+        	string create_deployment_url = "https://management.azure.com/subscriptions/{0}/resourcegroups/{1}/providers/Microsoft.Resources/deployments/{2}?api-version=2021-04-01";
         	string filledConnectionString = String.Format(connectionString, storage_account_name, accountkey);
         	string customerid = Util.GetEnvironmentVariable("customerId");
         	string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
@@ -454,7 +454,7 @@ namespace NwNsgProject
         }
 
         static async Task<Boolean> check_app_deployment(String token, String appNameStage1, String subs_id, TraceWriter log){
-        	string check_deployment_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Web/sites/{2}/functions?api-version=2016-08-01";
+        	string check_deployment_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Web/sites/{2}/functions?api-version=2021-03-01";
         	string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
         	try
         	{
@@ -478,8 +478,8 @@ namespace NwNsgProject
         }
 
         static async Task remove_resources(String storage_account_name, String app_name, String token, String subs_id, String location,TraceWriter log){
-        	string storage_account_delete_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}?api-version=2019-04-01";
-        	string webapp_delete_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Web/sites/{2}?deleteMetrics=true&deleteEmptyServerFarm=true&api-version=2016-08-01";
+        	string storage_account_delete_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}?api-version=2021-08-01";
+        	string webapp_delete_url = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Web/sites/{2}?deleteMetrics=true&deleteEmptyServerFarm=true&api-version=2021-03-01";
 			string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
 
         	try
@@ -512,7 +512,7 @@ namespace NwNsgProject
         }
 
         static async Task check_delete_storage_account( String token, String subs_id, String location ,TraceWriter log){
-        	string fetch_storage_account_details = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}?api-version=2018-07-01";
+        	string fetch_storage_account_details = "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Storage/storageAccounts/{2}?api-version=2021-08-01";
         	string customerid = Util.GetEnvironmentVariable("customerId");
         	string resourceGroup = Util.GetEnvironmentVariable("avidResourceGroup");
         	string local = Util.GetEnvironmentVariable("local");
