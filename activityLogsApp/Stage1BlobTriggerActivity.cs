@@ -1,9 +1,10 @@
 using System.IO;
 using System.Collections.Generic;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Table;
+using Microsoft.Azure.Storage.Blob;
+using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace NwNsgProject
@@ -18,20 +19,20 @@ namespace NwNsgProject
             [Queue("activitystage1", Connection = "AzureWebJobsStorage")] ICollector<Chunk> outputChunksActivity,
             [Table("activitycheckpoints", Connection = "AzureWebJobsStorage")] CloudTable checkpointTableActivity,
             string subId, string blobYear, string blobMonth, string blobDay, string blobHour, string blobMinute,
-            TraceWriter log)
+            ILogger log)
         {
-            log.Info("starting");
+            log.LogInformation("starting");
             string nsgSourceDataAccount = Util.GetEnvironmentVariable("nsgSourceDataAccount");
             if (nsgSourceDataAccount.Length == 0)
             {
-                log.Error("Value for nsgSourceDataAccount is required.");
+                log.LogError("Value for nsgSourceDataAccount is required.");
                 throw new System.ArgumentNullException("nsgSourceDataAccount", "Please provide setting.");
             }
 
             string blobContainerName = Util.GetEnvironmentVariable("blobContainerNameActivity");
             if (blobContainerName.Length == 0)
             {
-                log.Error("Value for blobContainerName is required.");
+                log.LogError("Value for blobContainerName is required.");
                 throw new System.ArgumentNullException("blobContainerName", "Please provide setting.");
             }
 
