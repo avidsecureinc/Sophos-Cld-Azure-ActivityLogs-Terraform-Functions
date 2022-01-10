@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Azure.WebJobs.Extensions;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
+using Microsoft.Extensions.Logging;
 using System.Net.Sockets;
 using Newtonsoft.Json;
 using System.Net;
@@ -21,14 +22,14 @@ namespace NwNsgProject
         public static async Task Run(
             [QueueTrigger("activitystage2", Connection = "AzureWebJobsStorage")]Chunk inputChunk,
             Binder binder,
-            TraceWriter log)
+            ILogger log)
         {
-            //log.Info($"C# Queue trigger function processed: {inputChunk}");
+            //log.LogInformation($"C# Queue trigger function processed: {inputChunk}");
 
             string nsgSourceDataAccount = Util.GetEnvironmentVariable("nsgSourceDataAccount");
             if (nsgSourceDataAccount.Length == 0)
             {
-                log.Error("Value for nsgSourceDataAccount is required.");
+                log.LogError("Value for nsgSourceDataAccount is required.");
                 throw new ArgumentNullException("nsgSourceDataAccount", "Please supply in this setting the name of the connection string from which NSG logs should be read.");
             }
 
@@ -48,7 +49,7 @@ namespace NwNsgProject
             }
             catch (Exception ex)
             {
-                log.Error(string.Format("Error binding blob input: {0}", ex.Message));
+                log.LogError(string.Format("Error binding blob input: {0}", ex.Message));
                 throw ex;
             }
 
@@ -63,20 +64,20 @@ namespace NwNsgProject
 
         }
 
-        public static async Task SendMessagesDownstream(string myMessages, TraceWriter log)
+        public static async Task SendMessagesDownstream(string myMessages, ILogger log)
         {
             await obAvidSecure(myMessages, log);
             
         }
 
-        static async Task obAvidSecure(string newClientContent, TraceWriter log)
+        static async Task obAvidSecure(string newClientContent, ILogger log)
         {
 
             string avidAddress = Util.GetEnvironmentVariable("avidActivityAddress");
 
             if (avidAddress.Length == 0)
             {
-                log.Error("Values for splunkAddress and splunkToken are required.");
+                log.LogError("Values for splunkAddress and splunkToken are required.");
                 return;
             }
             string customerid = Util.GetEnvironmentVariable("customerId");

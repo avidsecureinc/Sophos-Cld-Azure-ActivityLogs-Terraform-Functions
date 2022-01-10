@@ -2,7 +2,8 @@ using System;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Azure.WebJobs.Host.Bindings;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace NwNsgProject
@@ -16,9 +17,9 @@ namespace NwNsgProject
             [QueueTrigger("activitystage1", Connection = "AzureWebJobsStorage")]Chunk inputChunk,
             [Queue("activitystage2", Connection = "AzureWebJobsStorage")] ICollector<Chunk> outputQueue,
             Binder binder,
-            TraceWriter log)
+            ILogger log)
         {
-            log.Info($"C# Queue trigger function processed: {inputChunk}");
+            log.LogInformation($"C# Queue trigger function processed: {inputChunk}");
 
             if (inputChunk.Length < MAX_CHUNK_SIZE)
             {
@@ -29,7 +30,7 @@ namespace NwNsgProject
             string nsgSourceDataAccount = Util.GetEnvironmentVariable("nsgSourceDataAccount");
             if (nsgSourceDataAccount.Length == 0)
             {
-                log.Error("Value for nsgSourceDataAccount is required.");
+                log.LogError("Value for nsgSourceDataAccount is required.");
                 throw new ArgumentNullException("nsgSourceDataAccount", "Please supply in this setting the name of the connection string from which NSG logs should be read.");
             }
 
@@ -47,7 +48,7 @@ namespace NwNsgProject
             }
             catch (Exception ex)
             {
-                log.Error(string.Format("Error binding blob input: {0}", ex.Message));
+                log.LogError(string.Format("Error binding blob input: {0}", ex.Message));
                 throw ex;
             }
 
@@ -80,12 +81,12 @@ namespace NwNsgProject
             if (newChunk.Length > 0)
             {
                 outputQueue.Add(newChunk);
-                //log.Info($"Chunk starts at {newChunk.Start}, length is {newChunk.Length}");
+                //log.LogInformation($"Chunk starts at {newChunk.Start}, length is {newChunk.Length}");
             }
 
         }
 
-        public static Chunk GetNewChunk(Chunk thisChunk, int index, TraceWriter log, long start = 0)
+        public static Chunk GetNewChunk(Chunk thisChunk, int index, ILogger log, long start = 0)
         {
             var chunk = new Chunk
             {
@@ -96,7 +97,7 @@ namespace NwNsgProject
                 Length = 0
             };
 
-            //log.Info($"new chunk: {chunk.ToString()}");
+            //log.LogInformation($"new chunk: {chunk.ToString()}");
 
             return chunk;
         }
@@ -129,7 +130,7 @@ namespace NwNsgProject
             return endingByte - startingByte;
         }
 
-        public static int FindNextRecordRecurse(string nsgMessages, int startingByte, int braceCounter, TraceWriter log)
+        public static int FindNextRecordRecurse(string nsgMessages, int startingByte, int braceCounter, ILogger log)
         {
             if (startingByte == nsgMessages.Length)
             {
