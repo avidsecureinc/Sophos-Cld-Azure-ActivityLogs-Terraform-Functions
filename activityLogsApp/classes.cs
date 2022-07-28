@@ -390,6 +390,7 @@ class DeploymentParameters{
     public DeploymentParametersValues appName {get; set;}
     public DeploymentParametersValues avidAddress {get; set;}
     public DeploymentParametersValues branch {get; set;}
+    public DeploymentParametersValues hostId {get; set;}
 }
 class DeploymentParametersValues{
     public String value {get; set;}
