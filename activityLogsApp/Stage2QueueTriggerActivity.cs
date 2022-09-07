@@ -19,69 +19,76 @@ namespace NwNsgProject
             Binder binder,
             ILogger log)
         {
-            log.LogInformation($"C# Queue trigger function processed: {inputChunk}");
-
-            if (inputChunk.Length < MAX_CHUNK_SIZE)
-            {
-                outputQueue.Add(inputChunk);
-                return;
-            }
-
-            string nsgSourceDataAccount = Util.GetEnvironmentVariable("nsgSourceDataAccount");
-            if (nsgSourceDataAccount.Length == 0)
-            {
-                log.LogError("Value for nsgSourceDataAccount is required.");
-                throw new ArgumentNullException("nsgSourceDataAccount", "Please supply in this setting the name of the connection string from which NSG logs should be read.");
-            }
-
-            var attributes = new Attribute[]
-            {
-                new BlobAttribute(inputChunk.BlobName),
-                new StorageAccountAttribute(nsgSourceDataAccount)
-            };
-
-            byte[] nsgMessages = new byte[inputChunk.Length];
             try
             {
-                CloudAppendBlob blob = await binder.BindAsync<CloudAppendBlob>(attributes);
-                await blob.DownloadRangeToByteArrayAsync(nsgMessages, 0, inputChunk.Start, inputChunk.Length);
-            }
-            catch (Exception ex)
-            {
-                log.LogError(string.Format("Error binding blob input: {0}", ex.Message));
-                throw ex;
-            }
+                log.LogInformation($"C# Queue trigger function processed: {inputChunk}");
 
-            int startingByte = 0;
-            var chunkCount = 0;
-
-            var newChunk = GetNewChunk(inputChunk, chunkCount++, log, 0);
-
-            //long length = FindNextRecord(nsgMessages, startingByte);
-            var nsgMessagesString = System.Text.Encoding.Default.GetString(nsgMessages);
-            int endingByte = FindNextRecordRecurse(nsgMessagesString, startingByte, 0, log);
-            int length = endingByte - startingByte + 1;
-
-            while (length != 0)
-            {
-                if (newChunk.Length + length > MAX_CHUNK_SIZE)
+                if (inputChunk.Length < MAX_CHUNK_SIZE)
                 {
-                    outputQueue.Add(newChunk);
-
-                    newChunk = GetNewChunk(inputChunk, chunkCount++, log, newChunk.Start + newChunk.Length);
+                    outputQueue.Add(inputChunk);
+                    return;
                 }
 
-                newChunk.Length += length;
-                startingByte += length;
+                string nsgSourceDataAccount = Util.GetEnvironmentVariable("nsgSourceDataAccount");
+                if (nsgSourceDataAccount.Length == 0)
+                {
+                    log.LogError("Value for nsgSourceDataAccount is required.");
+                    throw new ArgumentNullException("nsgSourceDataAccount", "Please supply in this setting the name of the connection string from which NSG logs should be read.");
+                }
 
-                endingByte = FindNextRecordRecurse(nsgMessagesString, startingByte, 0, log);
-                length = endingByte - startingByte + 1;
+                var attributes = new Attribute[]
+                {
+                    new BlobAttribute(inputChunk.BlobName),
+                    new StorageAccountAttribute(nsgSourceDataAccount)
+                };
+
+                byte[] nsgMessages = new byte[inputChunk.Length];
+                try
+                {
+                    CloudAppendBlob blob = await binder.BindAsync<CloudAppendBlob>(attributes);
+                    await blob.DownloadRangeToByteArrayAsync(nsgMessages, 0, inputChunk.Start, inputChunk.Length);
+                }
+                catch (Exception ex)
+                {
+                    log.LogError(string.Format("Error binding blob input: {0}", ex.Message));
+                    throw ex;
+                }
+
+                int startingByte = 0;
+                var chunkCount = 0;
+
+                var newChunk = GetNewChunk(inputChunk, chunkCount++, log, 0);
+
+                //long length = FindNextRecord(nsgMessages, startingByte);
+                var nsgMessagesString = System.Text.Encoding.Default.GetString(nsgMessages);
+                int endingByte = FindNextRecordRecurse(nsgMessagesString, startingByte, 0, log);
+                int length = endingByte - startingByte + 1;
+
+                while (length != 0)
+                {
+                    if (newChunk.Length + length > MAX_CHUNK_SIZE)
+                    {
+                        outputQueue.Add(newChunk);
+
+                        newChunk = GetNewChunk(inputChunk, chunkCount++, log, newChunk.Start + newChunk.Length);
+                    }
+
+                    newChunk.Length += length;
+                    startingByte += length;
+
+                    endingByte = FindNextRecordRecurse(nsgMessagesString, startingByte, 0, log);
+                    length = endingByte - startingByte + 1;
+                }
+
+                if (newChunk.Length > 0)
+                {
+                    outputQueue.Add(newChunk);
+                    //log.LogInformation($"Chunk starts at {newChunk.Start}, length is {newChunk.Length}");
+                }
             }
-
-            if (newChunk.Length > 0)
+            catch (Exception e)
             {
-                outputQueue.Add(newChunk);
-                //log.LogInformation($"Chunk starts at {newChunk.Start}, length is {newChunk.Length}");
+                log.LogError(e, "Function Stage2QueueTriggerActivity is failed to process request");
             }
 
         }

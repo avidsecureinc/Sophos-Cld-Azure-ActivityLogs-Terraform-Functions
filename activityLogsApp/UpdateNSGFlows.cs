@@ -27,72 +27,43 @@ namespace NwNsgProject
 		[FunctionName("UpdateNSGFlows")]
 		public static async Task Run([TimerTrigger("0 */3 * * * *")] TimerInfo myTimer, ILogger log)
 		{
-		    
-		    var secret = Environment.GetEnvironmentVariable("MSI_SECRET");
-            var identity_header = Environment.GetEnvironmentVariable("IDENTITY_HEADER");
-            var principal_id = Environment.GetEnvironmentVariable("PRINCIPAL_ID");
+		    try
+		    {
+			    var secret = Environment.GetEnvironmentVariable("MSI_SECRET");
+	            var identity_header = Environment.GetEnvironmentVariable("IDENTITY_HEADER");
+	            var principal_id = Environment.GetEnvironmentVariable("PRINCIPAL_ID");
 
-		    var subs_ids = Environment.GetEnvironmentVariable("subscriptionIds").Split(',');
-		    string token = null;
-		    
-		    UriBuilder builder = new UriBuilder(Environment.GetEnvironmentVariable("MSI_ENDPOINT"));
-			string apiversion = Uri.EscapeDataString("2017-09-01");
-			string resource = Uri.EscapeDataString("https://management.azure.com/");
-			builder.Query = "api-version="+apiversion+"&resource="+resource;
+			    var subs_ids = Environment.GetEnvironmentVariable("subscriptionIds").Split(',');
+			    string token = null;
+			    
+			    UriBuilder builder = new UriBuilder(Environment.GetEnvironmentVariable("MSI_ENDPOINT"));
+				string apiversion = Uri.EscapeDataString("2017-09-01");
+				string resource = Uri.EscapeDataString("https://management.azure.com/");
+				builder.Query = "api-version="+apiversion+"&resource="+resource;
 
-            if(principal_id != null){
-                builder = new UriBuilder(Environment.GetEnvironmentVariable("IDENTITY_ENDPOINT"));
-                apiversion = Uri.EscapeDataString("2019-08-01");
-                builder.Query = "api-version="+apiversion+"&resource="+resource+"&principal_id="+principal_id;
-            }
-			
-			var client = new SingleHttpClientInstance();
-            try
-            {
-                HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, builder.Uri);
-                req.Headers.Accept.Clear();
-                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                req.Headers.Add("secret", secret);
-                if(principal_id != null){
-                    req.Headers.Add("X-IDENTITY-HEADER",identity_header);
-                }
-
-                HttpResponseMessage response = await SingleHttpClientInstance.getToken(req);
-                if (response.IsSuccessStatusCode)
-				{
-				    string data =  await response.Content.ReadAsStringAsync();
-				    var tokenObj = JsonConvert.DeserializeObject<Token>(data);
-				    token = tokenObj.access_token;
-				}
-            }
-            catch (System.Net.Http.HttpRequestException e)
-            {
-                throw new System.Net.Http.HttpRequestException("Sending to Splunk. Is Splunk service running?", e);
-            }
-
-            foreach(var subs_id in subs_ids){
-	            ////// get network watchers first
-
-				Dictionary<string, string> nwList = new Dictionary<string, string>(); 
-				string list_network_watchers = "https://management.azure.com/subscriptions/{0}/providers/Microsoft.Network/networkWatchers?api-version=2021-06-01";
-				string list_nsgs = "https://management.azure.com/subscriptions/{0}/providers/Microsoft.Network/networkSecurityGroups?api-version=2021-06-01";
-				client = new SingleHttpClientInstance();
+	            if(principal_id != null){
+	                builder = new UriBuilder(Environment.GetEnvironmentVariable("IDENTITY_ENDPOINT"));
+	                apiversion = Uri.EscapeDataString("2019-08-01");
+	                builder.Query = "api-version="+apiversion+"&resource="+resource+"&principal_id="+principal_id;
+	            }
+				
+				var client = new SingleHttpClientInstance();
 	            try
 	            {
-	                HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, String.Format(list_network_watchers, subs_id));
+	                HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, builder.Uri);
 	                req.Headers.Accept.Clear();
 	                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-	                
-	                HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
+	                req.Headers.Add("secret", secret);
+	                if(principal_id != null){
+	                    req.Headers.Add("X-IDENTITY-HEADER",identity_header);
+	                }
+
+	                HttpResponseMessage response = await SingleHttpClientInstance.getToken(req);
 	                if (response.IsSuccessStatusCode)
 					{
 					    string data =  await response.Content.ReadAsStringAsync();
-					    var result = JsonConvert.DeserializeObject<NWApiResult>(data);
-					    
-					    foreach (var nw in result.value) {
-					    	nwList.Add(nw.location,nw.id);
-					    }
-					    
+					    var tokenObj = JsonConvert.DeserializeObject<Token>(data);
+					    token = tokenObj.access_token;
 					}
 	            }
 	            catch (System.Net.Http.HttpRequestException e)
@@ -100,29 +71,64 @@ namespace NwNsgProject
 	                throw new System.Net.Http.HttpRequestException("Sending to Splunk. Is Splunk service running?", e);
 	            }
 
+	            foreach(var subs_id in subs_ids){
+		            ////// get network watchers first
 
-	            ////// get all nsgs
+					Dictionary<string, string> nwList = new Dictionary<string, string>(); 
+					string list_network_watchers = "https://management.azure.com/subscriptions/{0}/providers/Microsoft.Network/networkWatchers?api-version=2021-06-01";
+					string list_nsgs = "https://management.azure.com/subscriptions/{0}/providers/Microsoft.Network/networkSecurityGroups?api-version=2021-06-01";
+					client = new SingleHttpClientInstance();
+		            try
+		            {
+		                HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, String.Format(list_network_watchers, subs_id));
+		                req.Headers.Accept.Clear();
+		                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+		                
+		                HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
+		                if (response.IsSuccessStatusCode)
+						{
+						    string data =  await response.Content.ReadAsStringAsync();
+						    var result = JsonConvert.DeserializeObject<NWApiResult>(data);
+						    
+						    foreach (var nw in result.value) {
+						    	nwList.Add(nw.location,nw.id);
+						    }
+						    
+						}
+		            }
+		            catch (System.Net.Http.HttpRequestException e)
+		            {
+		                throw new System.Net.Http.HttpRequestException("Sending to Splunk. Is Splunk service running?", e);
+		            }
 
-	            client = new SingleHttpClientInstance();
-	            try
-	            {
-	                HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, String.Format(list_nsgs, subs_id));
-	                req.Headers.Accept.Clear();
-	                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-	                HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
 
-	                if (response.IsSuccessStatusCode)
-					{
-					    string data =  await response.Content.ReadAsStringAsync();
-					    var result = JsonConvert.DeserializeObject<NSGApiResult>(data);
-					   	await enable_flow_logs(result, nwList, token, subs_id, log);
-					}
-	            } 
-	            catch (System.Net.Http.HttpRequestException e)
-	            {
-	                throw new System.Net.Http.HttpRequestException("Sending to Splunk. Is Splunk service running?", e);
-	            }
+		            ////// get all nsgs
+
+		            client = new SingleHttpClientInstance();
+		            try
+		            {
+		                HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, String.Format(list_nsgs, subs_id));
+		                req.Headers.Accept.Clear();
+		                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+		                HttpResponseMessage response = await SingleHttpClientInstance.sendApiRequest(req, token);
+
+		                if (response.IsSuccessStatusCode)
+						{
+						    string data =  await response.Content.ReadAsStringAsync();
+						    var result = JsonConvert.DeserializeObject<NSGApiResult>(data);
+						   	await enable_flow_logs(result, nwList, token, subs_id, log);
+						}
+		            } 
+		            catch (System.Net.Http.HttpRequestException e)
+		            {
+		                throw new System.Net.Http.HttpRequestException("Sending to Splunk. Is Splunk service running?", e);
+		            }
+		        }
 	        }
+		    catch (Exception e)
+		    {
+		        log.LogError(e, "Function UpdateNSGFlows is failed to process request");
+		    }
 			
 		}
 
