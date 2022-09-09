@@ -24,44 +24,48 @@ namespace NwNsgProject
             Binder binder,
             ILogger log)
         {
-            //log.LogInformation($"C# Queue trigger function processed: {inputChunk}");
-
-            string nsgSourceDataAccount = Util.GetEnvironmentVariable("nsgSourceDataAccount");
-            if (nsgSourceDataAccount.Length == 0)
-            {
-                log.LogError("Value for nsgSourceDataAccount is required.");
-                throw new ArgumentNullException("nsgSourceDataAccount", "Please supply in this setting the name of the connection string from which NSG logs should be read.");
-            }
-
-            var attributes = new Attribute[]
-            {
-                new BlobAttribute(inputChunk.BlobName),
-                new StorageAccountAttribute(nsgSourceDataAccount)
-            };
-
-            string nsgMessagesString;
             try
             {
-                byte[] nsgMessages = new byte[inputChunk.Length];
-                CloudAppendBlob blob = await binder.BindAsync<CloudAppendBlob>(attributes);
-                await blob.DownloadRangeToByteArrayAsync(nsgMessages, 0, inputChunk.Start, inputChunk.Length);
-                nsgMessagesString = System.Text.Encoding.UTF8.GetString(nsgMessages);
+                string nsgSourceDataAccount = Util.GetEnvironmentVariable("nsgSourceDataAccount");
+                if (nsgSourceDataAccount.Length == 0)
+                {
+                    log.LogError("Value for nsgSourceDataAccount is required.");
+                    throw new ArgumentNullException("nsgSourceDataAccount", "Please supply in this setting the name of the connection string from which NSG logs should be read.");
+                }
+
+                var attributes = new Attribute[]
+                {
+                    new BlobAttribute(inputChunk.BlobName),
+                    new StorageAccountAttribute(nsgSourceDataAccount)
+                };
+
+                string nsgMessagesString;
+                try
+                {
+                    byte[] nsgMessages = new byte[inputChunk.Length];
+                    CloudAppendBlob blob = await binder.BindAsync<CloudAppendBlob>(attributes);
+                    await blob.DownloadRangeToByteArrayAsync(nsgMessages, 0, inputChunk.Start, inputChunk.Length);
+                    nsgMessagesString = System.Text.Encoding.UTF8.GetString(nsgMessages);
+                }
+                catch (Exception ex)
+                {
+                    log.LogError(string.Format("Error binding blob input: {0}", ex.Message));
+                    throw ex;
+                }
+
+                // skip past the leading comma
+                string trimmedMessages = nsgMessagesString.Trim();
+                int curlyBrace = trimmedMessages.IndexOf('{');
+                string newClientContent = "{\"records\":[";
+                newClientContent += trimmedMessages.Substring(curlyBrace);
+                newClientContent += "]}";
+                newClientContent = newClientContent.Replace(System.Environment.NewLine, ",");
+                await SendMessagesDownstream(newClientContent, log);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                log.LogError(string.Format("Error binding blob input: {0}", ex.Message));
-                throw ex;
+                log.LogError(e, "Function Stage3QueueTriggerActivity is failed to process request");
             }
-
-            // skip past the leading comma
-            string trimmedMessages = nsgMessagesString.Trim();
-            int curlyBrace = trimmedMessages.IndexOf('{');
-            string newClientContent = "{\"records\":[";
-            newClientContent += trimmedMessages.Substring(curlyBrace);
-            newClientContent += "]}";
-            newClientContent = newClientContent.Replace(System.Environment.NewLine, ",");
-            await SendMessagesDownstream(newClientContent, log);
-
         }
 
         public static async Task SendMessagesDownstream(string myMessages, ILogger log)
